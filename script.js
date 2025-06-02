@@ -114,49 +114,49 @@ async function fetchAnimals(searchTerm = '', species = '', ageGroup = '', gender
     }
 }
 function displayAnimals(animals) {
-    animalListElement.innerHTML = '';
-    if (animals.length === 0) {
-        animalListElement.innerHTML = '<p>目前沒有符合條件的動物。</p>';
-        return;
-    }
+    animalListElement.innerHTML = '';
+    if (animals.length === 0) {
+        animalListElement.innerHTML = '<p>目前沒有符合條件的動物。</p>';
+        return;
+    }
 
-    animals.forEach(animal => {
-        const card = document.createElement('div');
-        card.classList.add('animal-card');
+    animals.forEach(animal => {
+        const card = document.createElement('div');
+        card.classList.add('animal-card');
 
-        const imageUrl = './images/default-animal.jpg'; // 預設圖片路徑
+        const imageUrl = './images/default-animal.jpg'; // 預設圖片路徑
 
-        card.innerHTML = `
-            <img src="${imageUrl}" alt="${animal.name}">
-            <div class="animal-card-content">
-                <h3>${animal.name}</h3>
-                <p><strong>年齡:</strong> ${animal.age} 歲</p>
-                <p><strong>種類:</strong> ${animal.species}</p>
-                <button class="btn-detail" data-animal-id="${animal.id}">查看詳情</button>
-            </div>
-        `;
-        animalListElement.appendChild(card);
-    });
+        card.innerHTML = `
+            <img src="${imageUrl}" alt="${animal.name}">
+            <div class="animal-card-content">
+                <h3>${animal.name}</h3>
+                <p><strong>年齡:</strong> ${animal.age} 歲</p>
+                <p><strong>種類:</strong> ${animal.species}</p>
+                <button class="btn-detail" data-animal-id="${animal.id}">查看詳情</button>
+            </div>
+        `;
+        animalListElement.appendChild(card);
+    });
 
-  document.querySelectorAll('.btn-detail').forEach(button => {
-    button.addEventListener('click', async (e) => {
-        const id = e.target.dataset.animalId;
-        try {
-            const docRef = db.collection('animals').doc(id); // 使用 compat API
-            const docSnap = await docRef.get(); // 使用 compat API
-            if (docSnap.exists()) {
-                currentAnimalId = docSnap.id;
-                currentAnimalName = docSnap.data().name;
-                showPage('animalDetailPage', { id: docSnap.id, ...docSnap.data() });
-            } else {
-                alert('查無此動物資訊。');
-            }
-        } catch (error) {
-            console.error("Error fetching animal detail: ", error);
-            alert('載入動物詳細資訊失敗，請稍後再試。');
-        }
-    });
-});
+  document.querySelectorAll('.btn-detail').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        const id = e.target.dataset.animalId;
+        try {
+            const docRef = db.collection('animals').doc(id); // 使用 compat API
+            const docSnap = await docRef.get(); // 使用 compat API
+            if (docSnap.exists()) {
+                currentAnimalId = docSnap.id;
+                currentAnimalName = docSnap.data().name;
+                showPage('animalDetailPage', { id: docSnap.id, ...docSnap.data() });
+            } else {
+                alert('查無此動物資訊。');
+            }
+        } catch (error) {
+            console.error("Error fetching animal detail: ", error);
+            alert('載入動物詳細資訊失敗，請稍後再試。');
+        }
+    });
+} // 移除了多餘的 });
 
 const applyFilters = () => {
     const searchTerm = searchInput.value.trim();
