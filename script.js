@@ -73,18 +73,20 @@ function showPage(pageId, data = null) {
 // --- 首頁 (動物列表) 邏輯 ---
 async function fetchAnimals(searchTerm = '', species = '', ageGroup = '', gender = '') {
     animalListElement.innerHTML = '<p>載入中，請稍候...</p>';
-    let query = collection(db, 'animals');
-    query = where(query, 'isAdopted', '==', false);
+    let query = db.collection('animals').where('isAdopted', '==', false); // 使用 compat API
 
-    if (species) {
-        query = where(query, 'species', '==', species);
-    }
-    if (gender) {
-        query = where(query, 'gender', '==', gender);
-    }
+if (species) {
+    query = query.where('species', '==', species); // 使用 compat API
+}
+if (gender) {
+    query = query.where('gender', '==', gender); // 使用 compat API
+}
 
-    try {
-        const snapshot = await getDocs(query);
+try {
+    const snapshot = await query.get(); // 使用 compat API
+    let animals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // ...
+}
         let animals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         // 前端篩選年齡組
@@ -140,26 +142,25 @@ function displayAnimals(animals) {
         animalListElement.appendChild(card);
     });
 
-    document.querySelectorAll('.btn-detail').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            const id = e.target.dataset.animalId;
-            try {
-                const docRef = doc(db, 'animals', id);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    currentAnimalId = docSnap.id;
-                    currentAnimalName = docSnap.data().name;
-                    showPage('animalDetailPage', { id: docSnap.id, ...docSnap.data() });
-                } else {
-                    alert('查無此動物資訊。');
-                }
-            } catch (error) {
-                console.error("Error fetching animal detail: ", error);
-                alert('載入動物詳細資訊失敗，請稍後再試。');
+  document.querySelectorAll('.btn-detail').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        const id = e.target.dataset.animalId;
+        try {
+            const docRef = db.collection('animals').doc(id); // 使用 compat API
+            const docSnap = await docRef.get(); // 使用 compat API
+            if (docSnap.exists()) {
+                currentAnimalId = docSnap.id;
+                currentAnimalName = docSnap.data().name;
+                showPage('animalDetailPage', { id: docSnap.id, ...docSnap.data() });
+            } else {
+                alert('查無此動物資訊。');
             }
-        });
+        } catch (error) {
+            console.error("Error fetching animal detail: ", error);
+            alert('載入動物詳細資訊失敗，請稍後再試。');
+        }
     });
-}
+});
 
 const applyFilters = () => {
     const searchTerm = searchInput.value.trim();
@@ -225,28 +226,9 @@ function setupApplyForm(animalId, animalName) {
 
 adoptionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const applicantName = document.getElementById('applicantName').value;
-    const phone = document.getElementById('phone').value;
-    const email = document.getElementById('email').value;
-    const address = document.getElementById('address').value;
-    const experience = document.getElementById('experience').value;
-    const motivation = document.getElementById('motivation').value;
-    const notes = document.getElementById('notes').value;
-
-    if (!applicantName || !phone || !email || !address || !experience || !motivation) {
-        alert('請填寫所有必填欄位。');
-        return;
-    }
-
-    const phonePattern = /^[0-9]{10}$/;
-    if (!phonePattern.test(phone)) {
-        alert('請輸入有效的10位數字電話號碼。');
-        return;
-    }
-
+    // ...
     try {
-        await addDoc(collection(db, 'applications'), {
+        await db.collection('applications').add({ // 使用 compat API
             animalId: animalIdInput.value,
             animalName: animalNameInput.value,
             applicantName: applicantName,
@@ -278,24 +260,9 @@ backToDetailBtn.addEventListener('click', () => {
 // --- 上傳動物資料邏輯 ---
 uploadAnimalForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const name = document.getElementById('uploadAnimalName').value;
-    const age = parseFloat(document.getElementById('uploadAnimalAge').value);
-    const species = document.getElementById('uploadAnimalSpecies').value;
-    const breed = document.getElementById('uploadAnimalBreed').value;
-    const gender = document.getElementById('uploadAnimalGender').value;
-    const size = document.getElementById('uploadAnimalSize').value;
-    const healthStatus = document.getElementById('uploadAnimalHealthStatus').value;
-    const personality = document.getElementById('uploadAnimalPersonality').value;
-    const description = document.getElementById('uploadAnimalDescription').value;
-
-    if (!name || isNaN(age) || !species || !gender || !personality) {
-        alert('請填寫所有必填欄位。');
-        return;
-    }
-
+    // ...
     try {
-        await addDoc(collection(db, 'animals'), {
+        await db.collection('animals').add({ // 使用 compat API
             name: name,
             age: age,
             species: species,
@@ -316,7 +283,6 @@ uploadAnimalForm.addEventListener('submit', async (e) => {
         alert('上傳動物資料時發生錯誤，請稍後再試。');
     }
 });
-
 backFromUploadBtn.addEventListener('click', () => {
     showPage('homePage');
 });
