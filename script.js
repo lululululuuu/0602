@@ -87,7 +87,6 @@ try {
     let animals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     // ...
 }
-        let animals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         // 前端篩選年齡組
         if (ageGroup) {
