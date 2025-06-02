@@ -72,50 +72,47 @@ function showPage(pageId, data = null) {
 
 // --- 首頁 (動物列表) 邏輯 ---
 async function fetchAnimals(searchTerm = '', species = '', ageGroup = '', gender = '') {
-    animalListElement.innerHTML = '<p>載入中，請稍候...</p>';
-    let query = db.collection('animals').where('isAdopted', '==', false); // 使用 compat API
+    animalListElement.innerHTML = '<p>載入中，請稍候...</p>';
+    let query = db.collection('animals').where('isAdopted', '==', false); // 使用 compat API
 
-if (species) {
-    query = query.where('species', '==', species); // 使用 compat API
+    if (species) {
+        query = query.where('species', '==', species); // 使用 compat API
+    }
+    if (gender) {
+        query = query.where('gender', '==', gender); // 使用 compat API
+    }
+
+    try {
+        const snapshot = await query.get(); // 使用 compat API
+        let animals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // 前端篩選年齡組
+        if (ageGroup) {
+            animals = animals.filter(animal => {
+                if (ageGroup === 'young') return animal.age >= 0 && animal.age <= 1;
+                if (ageGroup === 'adult') return animal.age > 1 && animal.age <= 7;
+                if (ageGroup === 'senior') return animal.age > 7;
+                return true;
+            });
+        }
+
+        // 前端篩選關鍵字
+        if (searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            animals = animals.filter(animal =>
+                animal.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+                (animal.description && animal.description.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                (animal.breed && animal.breed.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                (animal.personality && animal.personality.toLowerCase().includes(lowerCaseSearchTerm))
+            );
+        }
+
+        displayAnimals(animals);
+    } catch (error) {
+        console.error("Error fetching animals: ", error);
+        animalListElement.innerHTML = '<p>無法載入動物資料，請稍後再試。</p>';
+    }
 }
-if (gender) {
-    query = query.where('gender', '==', gender); // 使用 compat API
-}
-
-try {
-    const snapshot = await query.get(); // 使用 compat API
-    let animals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // ...
-}
-
-        // 前端篩選年齡組
-        if (ageGroup) {
-            animals = animals.filter(animal => {
-                if (ageGroup === 'young') return animal.age >= 0 && animal.age <= 1;
-                if (ageGroup === 'adult') return animal.age > 1 && animal.age <= 7;
-                if (ageGroup === 'senior') return animal.age > 7;
-                return true;
-            });
-        }
-
-        // 前端篩選關鍵字
-        if (searchTerm) {
-            const lowerCaseSearchTerm = searchTerm.toLowerCase();
-            animals = animals.filter(animal =>
-                animal.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-                (animal.description && animal.description.toLowerCase().includes(lowerCaseSearchTerm)) ||
-                (animal.breed && animal.breed.toLowerCase().includes(lowerCaseSearchTerm)) ||
-                (animal.personality && animal.personality.toLowerCase().includes(lowerCaseSearchTerm))
-            );
-        }
-
-        displayAnimals(animals);
-    } catch (error) {
-        console.error("Error fetching animals: ", error);
-        animalListElement.innerHTML = '<p>無法載入動物資料，請稍後再試。</p>';
-    }
-}
-
 function displayAnimals(animals) {
     animalListElement.innerHTML = '';
     if (animals.length === 0) {
