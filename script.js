@@ -23,7 +23,8 @@ const firebaseConfig = {
 // 初始化 Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-// const storage = firebase.storage(); // <-- 移除了 Firebase Storage 的初始化
+const storage = firebase.storage(); // 現在這行已經被啟用，可以使用 Firebase Storage 功能了
+
 
 // 頁面元素獲取
 const homePage = document.getElementById('homePage');
