@@ -1,8 +1,22 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, where } from "firebase/firestore";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { getAnalytics } from "firebase/analytics";
+// Firebase 配置 (保持不變)
+const firebaseConfig = {
+    apiKey: "AIzaSyCIWSLwyUCEkKGz4bne2leVHIbm7EFpObg",
+    authDomain: "yuuu-52269.firebaseapp.com",
+    databaseURL: "https://yuuu-52269-default-rtdb.firebaseio.com",
+    projectId: "yuuu-52269",
+    storageBucket: "yuuu-52269.appspot.com",
+    messagingSenderId: "208020331487",
+    appId: "1:208020331487:web:dc207529c8378a5c9d826a",
+    measurementId: "G-PDS03JGPRR"
+};
 
+// 初始化 Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+const analytics = firebase.analytics(app);
+
+// ... (您原來的其餘 JavaScript 程式碼) ...
 // Firebase 配置
 const firebaseConfig = {
     apiKey: "AIzaSyCIWSLwyUCEkKGz4bne2leVHIbm7EFpObg",
