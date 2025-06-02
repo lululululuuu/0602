@@ -2,31 +2,36 @@
 const firebaseConfig = {
     apiKey: "AIzaSyCIWSLwyUCEkKGz4bne2leVHIbm7EFpObg",
     authDomain: "yuuu-52269.firebaseapp.com",
-    databaseURL: "https://yuuu-52269-default-rtdb.firebaseio.com",
+    databaseURL: "https://yuuu-52269-default-rtdb.firebaseio.com", // 如果你主要使用 Firestore，這個可能不是必須的
     projectId: "yuuu-52269",
     storageBucket: "yuuu-52269.appspot.com",
     messagingSenderId: "208020331487",
     appId: "1:208020331487:web:dc207529c8378a5c9d826a",
-    measurementId: "G-PDS03JGPRR"
+    measurementId: "G-PDS03JGPRR" // 如果不使用 Analytics，這個也可以移除
 };
 
 // 初始化 Firebase
-const app = firebase.initializeApp(firebaseConfig);
+// 當使用 compat 版本時，可以直接調用 firebase.initializeApp
+firebase.initializeApp(firebaseConfig);
+
+// 獲取 Firebase 服務實例
 const db = firebase.firestore();
 const storage = firebase.storage();
-const analytics = firebase.analytics(app);
+const analytics = firebase.analytics(); // analytics 服務可以直接調用
 
 // 頁面元素獲取
 const homePage = document.getElementById('homePage');
 const animalDetailPage = document.getElementById('animalDetailPage');
 const applyFormPage = document.getElementById('applyFormPage');
 const uploadAnimalPage = document.getElementById('uploadAnimalPage');
+const aboutPage = document.getElementById('about'); // 新增 about 頁面元素獲取
+const contactPage = document.getElementById('contact'); // 新增 contact 頁面元素獲取
 
 const homeLink = document.getElementById('homeLink');
 const navHome = document.getElementById('navHome');
 const navUploadAnimal = document.getElementById('navUploadAnimal');
-const navAbout = document.querySelector('a[href="#about"]');
-const navContact = document.querySelector('a[href="#contact"]');
+const navAbout = document.getElementById('navAbout'); // 確保 HTML 中有 id="navAbout"
+const navContact = document.getElementById('navContact'); // 確保 HTML 中有 id="navContact"
 const backFromAboutBtn = document.getElementById('backFromAboutBtn');
 const backFromContactBtn = document.getElementById('backFromContactBtn');
 
@@ -46,6 +51,17 @@ const backToDetailBtn = document.getElementById('backToDetailBtn');
 
 // 上傳動物表單元素 (移除圖片相關元素)
 const uploadAnimalForm = document.getElementById('uploadAnimalForm');
+// 修正上傳表單的輸入框 ID，與 HTML 中的 ID 匹配
+const uploadAnimalNameInput = document.getElementById('uploadAnimalName');
+const uploadAnimalAgeInput = document.getElementById('uploadAnimalAge');
+const uploadAnimalSpeciesInput = document.getElementById('uploadAnimalSpecies');
+const uploadAnimalBreedInput = document.getElementById('uploadAnimalBreed');
+const uploadAnimalGenderInput = document.getElementById('uploadAnimalGender');
+const uploadAnimalSizeInput = document.getElementById('uploadAnimalSize');
+const uploadAnimalHealthStatusInput = document.getElementById('uploadAnimalHealthStatus');
+const uploadAnimalPersonalityInput = document.getElementById('uploadAnimalPersonality');
+const uploadAnimalDescriptionInput = document.getElementById('uploadAnimalDescription');
+
 const backFromUploadBtn = document.getElementById('backFromUploadBtn');
 
 let currentAnimalId = null; // 用於儲存當前查看的動物ID
@@ -125,6 +141,7 @@ function displayAnimals(animals) {
         const card = document.createElement('div');
         card.classList.add('animal-card');
 
+        // 請確保你的圖片路徑正確
         const imageUrl = './images/default-animal.jpg'; // 預設圖片路徑
 
         card.innerHTML = `
@@ -157,7 +174,7 @@ function displayAnimals(animals) {
                 alert('載入動物詳細資訊失敗，請稍後再試。');
             }
         });
-    }); // 這裡補上 forEach 的閉合括號
+    });
 } // displayAnimals 函式的結束
 
 const applyFilters = () => {
@@ -172,11 +189,11 @@ searchButton.addEventListener('click', applyFilters);
 speciesFilter.addEventListener('change', applyFilters);
 ageFilter.addEventListener('change', applyFilters);
 genderFilter.addEventListener('change', applyFilters);
-searchInput.addEventListener('input', applyFilters);
+searchInput.addEventListener('input', applyFilters); // 輸入時也觸發篩選
 
 // --- 動物詳細頁面邏輯 ---
 function displayAnimalDetail(animal) {
-    let imageHtml = `<img src="./images/default-animal.jpg" alt="${animal.name}">`;
+    let imageHtml = `<img src="./images/default-animal.jpg" alt="${animal.name}">`; // 預設圖片
 
     const applyButtonHtml = animal.isAdopted
         ? `<button class="btn-apply adopted" disabled>已領養</button>`
@@ -226,7 +243,8 @@ adoptionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     // 獲取表單輸入值
-    const applicantName = document.getElementById('applicantName').value; // 請確保你的 input 有 id="applicantName"
+    // 確保這些 ID 與 HTML 中的 input 元素 ID 完全匹配
+    const applicantName = document.getElementById('applicantName').value;
     const phone = document.getElementById('phone').value;
     const email = document.getElementById('email').value;
     const address = document.getElementById('address').value;
@@ -258,7 +276,23 @@ adoptionForm.addEventListener('submit', async (e) => {
 
 backToDetailBtn.addEventListener('click', () => {
     if (currentAnimalId && currentAnimalName) {
-        showPage('animalDetailPage', { id: currentAnimalId, name: currentAnimalName });
+        // 返回動物詳情頁面，需要再次獲取動物資料以顯示完整詳情
+        (async () => {
+            try {
+                const docRef = db.collection('animals').doc(currentAnimalId);
+                const docSnap = await docRef.get();
+                if (docSnap.exists()) {
+                    showPage('animalDetailPage', { id: docSnap.id, ...docSnap.data() });
+                } else {
+                    alert('返回動物詳情失敗，資料可能已被刪除。');
+                    showPage('homePage');
+                }
+            } catch (error) {
+                console.error("Error returning to animal detail: ", error);
+                alert('返回動物詳情時發生錯誤，請稍後再試。');
+                showPage('homePage');
+            }
+        })();
     } else {
         showPage('homePage');
     }
@@ -268,16 +302,16 @@ backToDetailBtn.addEventListener('click', () => {
 uploadAnimalForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // 獲取表單輸入值
-    const name = document.getElementById('uploadName').value; // 請確保你的 input 有 id="uploadName"
-    const age = parseInt(document.getElementById('uploadAge').value); // 轉換為數字
-    const species = document.getElementById('uploadSpecies').value;
-    const breed = document.getElementById('uploadBreed').value;
-    const gender = document.getElementById('uploadGender').value;
-    const size = document.getElementById('uploadSize').value;
-    const healthStatus = document.getElementById('uploadHealthStatus').value;
-    const personality = document.getElementById('uploadPersonality').value;
-    const description = document.getElementById('uploadDescription').value;
+    // 獲取表單輸入值 - 確保這裡的 ID 與 HTML 中的 ID 完全匹配
+    const name = uploadAnimalNameInput.value;
+    const age = parseFloat(uploadAnimalAgeInput.value); // 使用 parseFloat 以處理小數年齡
+    const species = uploadAnimalSpeciesInput.value;
+    const breed = uploadAnimalBreedInput.value;
+    const gender = uploadAnimalGenderInput.value;
+    const size = uploadAnimalSizeInput.value;
+    const healthStatus = uploadAnimalHealthStatusInput.value;
+    const personality = uploadAnimalPersonalityInput.value;
+    const description = uploadAnimalDescriptionInput.value;
 
     // 基本驗證
     if (!name || isNaN(age) || !species || !gender || !personality) {
@@ -296,7 +330,7 @@ uploadAnimalForm.addEventListener('submit', async (e) => {
             healthStatus: healthStatus || '',
             personality: personality,
             description: description || '',
-            isAdopted: false,
+            isAdopted: false, // 新上傳的動物預設為未被領養
             uploadedAt: new Date()
         });
         alert('動物資料上傳成功！');
@@ -334,12 +368,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navAbout.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage('about');
+        showPage('about'); // 切換到關於我們頁面
     });
 
     navContact.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage('contact');
+        showPage('contact'); // 切換到聯絡我們頁面
     });
 
     backFromAboutBtn.addEventListener('click', () => {
