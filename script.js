@@ -17,11 +17,6 @@ const firebaseConfig = {
     measurementId: "G-PDS03JGPRR"
 };
 
-// 初始化 Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const analytics = getAnalytics(app);
 
 // 頁面元素獲取
 const homePage = document.getElementById('homePage');
